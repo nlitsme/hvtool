@@ -5,8 +5,8 @@
 #include <stdio.h>
 #include "vectorutils.h"
 #include "util/chariterators.h"
-#include <boost/shared_ptr.hpp>
-#include <boost/function.hpp>
+#include <memory>
+#include <functional>
 #include <map>
 #include "regpath.h"
 #include "regvalue.h"
@@ -23,7 +23,7 @@ int g_verbose;
 namespace ent {
 
 class base;
-typedef boost::shared_ptr<base> entry_ptr;
+typedef std::shared_ptr<base> entry_ptr;
     class roots;
     class key;
     class value;
@@ -212,7 +212,7 @@ public:
 //=============================================================================
 // type 0xd000 - value
 class value;
-typedef boost::shared_ptr<value> value_ptr;
+typedef std::shared_ptr<value> value_ptr;
 
 enum { VT_STRING=1, VT_BINARY=3, VT_DWORD=4, VT_STRINGLIST=7, VT_MUI=21 };
 
@@ -780,12 +780,12 @@ public:
         w->setpos(0);
         writeheader(w);
     }
-    void enumfileentries(boost::function<void(ent::entry_ptr)> cb)
+    void enumfileentries(std::function<void(ent::entry_ptr)> cb)
     {
         for (unsigned i=0 ; i<_offsets.size()-1 ; i++)
             enumsectionentries(_offsets[i], _r->size()-0x5000, cb);
     }
-    void enumsectionentries(uint32_t startofs, uint32_t maxofs, boost::function<void(ent::entry_ptr)> cb)
+    void enumsectionentries(uint32_t startofs, uint32_t maxofs, std::function<void(ent::entry_ptr)> cb)
     {
         uint32_t ofs= startofs;
         if (g_verbose>1)
@@ -1119,7 +1119,7 @@ int main(int argc, char**argv)
             hv.enumfileentries([&items](ent::entry_ptr p) {
                 items.insert(ent::entrymap_t::value_type(p->id(), p));
             });
-            boost::shared_ptr<dumper> d;
+            std::shared_ptr<dumper> d;
             if (fDumpAsRaw)
                 d.reset(new rawdumper(items));
             else
