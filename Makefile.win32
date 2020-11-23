@@ -1,0 +1,37 @@
+MYPRJ=.
+
+
+LDFLAGS+=/Zi /link
+CFLAGS+=/Zi -Wall -D_NO_RAPI /EHsc /D_WIN32_WINNT_WIN10_TH2=1 -DNOMINMAX -D_NO_WINDOWS
+CFLAGS+=-DUSE_STD_REGEX -D_NO_RAPI
+
+# vs2015: 14.0
+# vs2017: 14.1
+boost=c:/local/boost
+CFLAGS+=-I $(boost)
+LDFLAGS+=/libpath:$(boost)/lib32-msvc-14.0
+
+itslib=$(MYPRJ)/itslib
+CFLAGS+=-I $(itslib)/include
+
+regutils=$(MYPRJ)/registryutils
+CFLAGS+=-I $(regutils)
+
+CXX=CL.exe
+LINK=LINK.exe
+
+eimgfs.exe: hvtool.obj stringutils.obj debug.obj regfileparser.obj regvalue.obj
+	$(CXX) /Fe:$@ $^ $(LDFLAGS)
+
+%.obj: %.cpp
+	$(CXX) -c /Fo:$@ $^ $(CFLAGS)
+
+%.obj: $(itslib)/src/%.cpp
+	$(CXX) -c /Fo:$@ $^ $(CFLAGS)
+
+%.obj: $(regutils)/%.cpp
+	$(CXX) -c /Fo:$@ $^ $(CFLAGS)
+
+clean:
+	$(RM) hvtool.exe $(wildcard *.obj)
+
