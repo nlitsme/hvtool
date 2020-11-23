@@ -13,7 +13,11 @@ CFLAGS+=-I $(regutils)
 hvtool: hvtool.o stringutils.o vectorutils.o debug.o regfileparser.o regvalue.o
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
-openssl=/usr/local/opt/openssl
+# find a suitable openssl dir
+sslv=$(firstword $(wildcard $(addsuffix /include/openssl/opensslv.h,/usr/local /opt/local $(wildcard /usr/local/opt/openssl*) /usr)))
+dirname=$(dir $(patsubst %/,%,$1))
+openssl=$(call dirname,$(call dirname,$(call dirname,$(sslv))))
+
 CFLAGS+=-I $(openssl)/include
 LDFLAGS+=-L$(openssl)/lib -lcrypto
 
