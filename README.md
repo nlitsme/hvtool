@@ -17,6 +17,18 @@ Create a registry hive file from a utf-8 encoded `.reg` file:
     hvtool -o user.hv user.reg
 
 
+Install
+=======
+
+windows/mingw
+ * mingw-get install msys-libopenssl
+
+freebsd
+ * pkg install boost-all
+
+osx
+ * brew install openssl
+
 Author
 ======
 
