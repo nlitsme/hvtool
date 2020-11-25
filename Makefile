@@ -1,11 +1,12 @@
 MYPRJ=.
 
 
-LDFLAGS=-g
-CFLAGS=-g -Wall -std=c++1z -D_NO_RAPI -DUSE_STD_REGEX
+LDFLAGS+=-g
+CFLAGS+=-g -Wall -std=c++1z -D_NO_RAPI -DUSE_STD_REGEX
 
 itslib=$(MYPRJ)/itslib
 CFLAGS+=-I $(itslib)/include
+CFLAGS+=-I /usr/local/include
 
 regutils=$(MYPRJ)/registryutils
 CFLAGS+=-I $(regutils)

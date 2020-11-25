@@ -7,7 +7,7 @@ CFLAGS+=-DUSE_STD_REGEX -D_NO_RAPI
 
 # vs2015: 14.0
 # vs2017: 14.1
-boost=c:/local/boost
+boost=c:/local/boost_1_74_0
 CFLAGS+=-I $(boost)
 LDFLAGS+=/libpath:$(boost)/lib32-msvc-14.0
 
