@@ -24,7 +24,7 @@ CFLAGS+=-I $(regutils)
 CXX=CL.exe
 LINK=LINK.exe
 
-eimgfs.exe: hvtool.obj vectorutils.obj stringutils.obj debug.obj regfileparser.obj regvalue.obj
+hvtool.exe: hvtool.obj vectorutils.obj stringutils.obj debug.obj regfileparser.obj regvalue.obj
 	$(CXX) /Fe:$@ $^ $(LDFLAGS)
 
 %.obj: %.cpp
