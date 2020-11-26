@@ -9,9 +9,9 @@ CFLAGS+=-DUSE_STD_REGEX -D_NO_RAPI
 # vs2017: 14.1
 boost=c:/local/boost_1_74_0
 CFLAGS+=-I $(boost)
-LDFLAGS+=/libpath:$(boost)/lib32-msvc-14.0
+LDFLAGS+=/libpath:$(boost)/lib64-msvc-14.2
 
-openssl=c:/local/openssl-Win32
+openssl=c:/local/openssl-Win64
 CFLAGS+=-I $(openssl)/include
 LDFLAGS+=$(openssl)/lib/libcrypto.lib
 
@@ -24,7 +24,7 @@ CFLAGS+=-I $(regutils)
 CXX=CL.exe
 LINK=LINK.exe
 
-eimgfs.exe: hvtool.obj stringutils.obj debug.obj regfileparser.obj regvalue.obj
+eimgfs.exe: hvtool.obj vectorutils.obj stringutils.obj debug.obj regfileparser.obj regvalue.obj
 	$(CXX) /Fe:$@ $^ $(LDFLAGS)
 
 %.obj: %.cpp
