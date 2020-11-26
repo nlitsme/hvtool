@@ -11,6 +11,10 @@ boost=c:/local/boost_1_74_0
 CFLAGS+=-I $(boost)
 LDFLAGS+=/libpath:$(boost)/lib32-msvc-14.0
 
+openssl=c:/local/openssl-Win32
+CFLAGS+=-I $(openssl)/include
+LDFLAGS+=$(openssl)/lib/libcrypto.lib
+
 itslib=$(MYPRJ)/itslib
 CFLAGS+=-I $(itslib)/include
 
