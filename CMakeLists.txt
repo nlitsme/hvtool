@@ -38,7 +38,7 @@ endif()
 add_definitions(-DUSE_STD_REGEX)
 
 find_package(openssl REQUIRED)
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED COMPONENTS regex date_time)
 find_package(itslib REQUIRED)
 find_package(regutils REQUIRED)
 
