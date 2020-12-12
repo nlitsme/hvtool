@@ -1,0 +1,28 @@
+# targets:
+#   all            - build all binaries using cmake
+#   ninja          - build all binaries using google-ninja
+#   vc             - build all binaries using cmake + msvc
+#   clean          - remove the build directory
+
+# if you want to build everything statically:
+#     make -j CMAKEARGS=-DOPT_STATIC=True
+
+all:
+	cmake -B build . $(if $(D),-DCMAKE_BUILD_TYPE=Debug,-DCMAKE_BUILD_TYPE=Release) $(CMAKEARGS)
+	$(MAKE) -C build $(if $(V),VERBOSE=1)
+
+ninja:
+	cmake -GNinja -B build .
+	ninja -C build
+
+afl:
+	CC=/usr/bin/afl-clang CXX=/usr/bin/afl-clang++ cmake -B flbuild .
+	CC=/usr/bin/afl-clang CXX=/usr/bin/afl-clang++ $(MAKE) -C flbuild
+
+vc:
+	"C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe" -G"Visual Studio 16 2019" -B build .
+	"C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" build/hvtool.sln -t:Rebuild
+
+clean:
+	$(RM) -r build CMakeFiles CMakeCache.txt CMakeOutput.log
+
