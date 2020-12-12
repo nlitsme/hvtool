@@ -29,11 +29,11 @@ void DV_AppendPtr(DwordVector& v, void *ptr)
 void *DV_GetPtr(DwordVector::const_iterator& i)
 {
     void *ptr;
-#if __POINTER_WIDTH__==32
+#if __INTPTR_WIDTH__==32
         uint32_t i32;
         i32= *i++;
         ptr= (void*)i32;
-#elif __POINTER_WIDTH__==64
+#elif __INTPTR_WIDTH__==64
         uint64_t i64;
         i64= *i++;
         i64 |= ((uint64_t)(*i++))<<32;
