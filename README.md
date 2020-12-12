@@ -20,14 +20,34 @@ Create a registry hive file from a utf-8 encoded `.reg` file:
 Install
 =======
 
-windows/mingw
- * mingw-get install msys-libopenssl
+windows
+ * expect openssl to be installed in c:/local/openssl-Win64
+ * expect boost to be installed in `c:/local/boost_1_74_0`
 
 freebsd
  * pkg install boost-all
 
 osx
  * brew install openssl
+
+
+Building
+========
+
+Either using the more traditional `Makefile`:
+
+    make
+
+or
+
+    make -f Makefile.win32
+
+Or using the cmake build system:
+
+    make -f Makefile.cm
+
+`cmake` will result in a binary in the `build` subdirectory, while the traditional make will 
+create a binary in the current directory.
 
 Author
 ======
