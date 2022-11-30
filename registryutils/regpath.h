@@ -1,6 +1,8 @@
 #ifndef _REG_PATH_H_
 #define _REG_PATH_H_
 
+#include "stringutils.h"
+
 #ifdef _WIN32
 #include <windows.h>
 #else
