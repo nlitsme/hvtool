@@ -20,6 +20,73 @@ typedef uint32_t HKEY;
 
 int g_verbose;
 
+template<typename PTR>
+size_t vectorread32le(PTR rd, DwordVector& v, size_t n)
+{
+    v.resize(n);
+
+    size_t nr= rd->read((uint8_t*)&v[0], n*sizeof(uint32_t));
+    if (nr%sizeof(uint32_t))
+        throw "read partial uint32_t";
+    v.resize(nr/sizeof(uint32_t));
+#if __BYTE_ORDER == __BIG_ENDIAN
+#ifdef __GXX_EXPERIMENTAL_CXX0X__
+    std::for_each(v.begin(), v.end(), [](uint32_t& x) { x= swab32(x);});
+#else
+    throw "need c++0x";
+#endif
+#endif
+    return v.size();
+}
+
+template<typename PTR>
+size_t vectorread8(PTR rd, ByteVector& v, size_t n)
+{
+	v.resize(n);
+	size_t nr= rd->read((uint8_t*)&v[0], n);
+	v.resize(nr);
+	return v.size();
+}
+template<typename PTR>
+size_t readutf16le(PTR rd, std::Wstring& v, size_t n)
+{
+    v.resize(n);
+    size_t nr= rd->read((uint8_t*)&v[0], n*sizeof(uint16_t));
+    if (nr%sizeof(uint16_t))
+        throw "read partial uint16_t";
+    v.resize(nr/sizeof(uint16_t));
+    v.resize(stringlength(&v[0]));
+#if __BYTE_ORDER == __BIG_ENDIAN
+#ifdef __GXX_EXPERIMENTAL_CXX0X__
+    std::for_each(v.begin(), v.end(), [](uint16_t& x) { x= swab16(x);});
+#else
+    throw "need c++0x";
+#endif
+#endif
+
+    return v.size();
+}
+template<typename PTR>
+    void vectorwrite32le(PTR wr, const DwordVector& v)
+    {
+        for (DwordVector::const_iterator i= v.begin() ; i!=v.end() ; ++i)
+            wr->write32le(*i);
+    }
+template<typename PTR>
+    void writeutf16le(PTR wr, const std::Wstring& v)
+    {
+#if __BYTE_ORDER == __BIG_ENDIAN
+#ifdef __GXX_EXPERIMENTAL_CXX0X__
+        std::for_each(v.begin(), v.end(), [this](uint16_t x) { wr->write16le(x); });
+#else
+        throw "need c++0x";
+#endif
+#else  // __LITTLE_ENDIAN
+        wr->write((const uint8_t*)v.c_str(), v.size()*sizeof(uint16_t));
+#endif
+    }
+
+
 namespace ent {
 
 class base;
@@ -39,8 +106,9 @@ typedef std::shared_ptr<base> entry_ptr;
     class stringlistvalue;
     class muistringvalue;
 
+
 typedef std::map<uint32_t,entry_ptr> entrymap_t;
-class base : protected MemoryReader {
+class base : public MemoryReader {
     uint32_t _id;  // note: this id is not orred with 0x20000000
 protected:
     ByteVector _data;
@@ -63,7 +131,7 @@ public:
     std::string readwstr(size_t n)
     {
         std::Wstring w;
-        readutf16le(w, n);
+        readutf16le(this, w, n);
         return ToString(w);
     }
     virtual void save(ReadWriter_ptr w)= 0;
@@ -105,7 +173,7 @@ public:
     roots(uint32_t id, const ByteVector& data)
         : base(id, data)
     {
-        vectorread32le(_roots, 8);
+        vectorread32le(this, _roots, 8);
         _lasts.resize(8); // note: not updated
         auto i= std::find_if(_roots.begin()+3, _roots.end(), [](uint32_t x) { return x!=0; });
         if (i!=_roots.end())
@@ -137,7 +205,7 @@ public:
     virtual void save(ReadWriter_ptr w)
     {
         savehead(w, _roots.size()*sizeof(uint32_t));
-        w->vectorwrite32le(_roots);
+        vectorwrite32le(w, _roots);
     }
 };
 
@@ -201,7 +269,7 @@ public:
         w->write8(0);
         w->write16le(0);
 
-        w->writeutf16le(wstr);
+        writeutf16le(w, wstr);
 
         if (padding)
             w->write16le(0);
@@ -255,7 +323,7 @@ public:
         w->write16le(bin.size());
         w->write16le(wstr.size());
 
-        w->writeutf16le(wstr);
+        writeutf16le(w, wstr);
         w->write(&bin.front(), bin.size());
 
         for (unsigned i=0 ; i<padding ; i++)
@@ -426,11 +494,11 @@ value_ptr value::readvalue(uint32_t id, const ByteVector& data)
     uint16_t namlen= r.read16le();  // max 0x75
 
     std::Wstring w;
-    r.readutf16le(w, namlen);
+    readutf16le(&r, w, namlen);
     std::string name= ToString(w);
 
     ByteVector valdata;
-    r.vectorread8(valdata, vallen);
+    vectorread8(&r, valdata, vallen);
 
     switch(type)
     {
@@ -519,7 +587,7 @@ entry_ptr base::readentry(ReadWriter_ptr r, uint32_t ofs, uint8_t flag)
     if (nul_0004 && g_verbose)
         printf("WARNING: entry +4=%08x\n", nul_0004);
     ByteVector data;
-    r->vectorread8(data, size);
+    vectorread8(r, data, size);
 
     if (g_verbose>1)
         printf("%08x-%08x:[%02x] %06x %x [%08x] ", ofs, ofs+12+size, flag, size, type, id);
@@ -575,7 +643,7 @@ class HvFile {
             throw "not a hv/vol file";
 
         ByteVector filemd5;
-        _r->vectorread8(filemd5, 16);           // +000c
+        vectorread8(_r, filemd5, 16);           // +000c
 
         uint32_t nul_001c= _r->read32le();      // +001c
         uint32_t filesize= _r->read32le();      // +0020
@@ -587,10 +655,10 @@ class HvFile {
         }
         uint32_t filetype= _r->read32le();      // +0024  - 0x1000 for db files
 
-        _r->vectorread8(_bootmd5, 16);           // +0028
+        vectorread8(_r, _bootmd5, 16);           // +0028
 
         DwordVector usuallynul_0038;
-        _r->vectorread32le(usuallynul_0038, (0xE4-0x38)/4);     // +0038
+        vectorread32le(_r, usuallynul_0038, (0xE4-0x38)/4);     // +0038
         if (!is_all_zero(usuallynul_0038))
             printf("WARN: +0038: %s\n", vhexdump(usuallynul_0038).c_str());
 
@@ -616,17 +684,17 @@ class HvFile {
         if (g_verbose) {
             _r->setpos(0);
             DwordVector filehdr1;
-            _r->vectorread32le(filehdr1, 0x38/4);
+            vectorread32le(_r, filehdr1, 0x38/4);
             DwordVector filehdr2;
             _r->setpos(0xe4);
-            _r->vectorread32le(filehdr2, (0xf4-0xe4)/4);
+            vectorread32le(_r, filehdr2, (0xf4-0xe4)/4);
             printf("          hdrsize           magic    --filemd5--------------------------          filesize filetype --bootmd5-------------------------- ... base              isreghv  isdbvol\n");
             printf("filehdr: %s ...%s\n", vhexdump(filehdr1).c_str(), vhexdump(filehdr2).c_str());
         }
 
 
         DwordVector usuallynul_00f4;
-        _r->vectorread32le(usuallynul_00f4, 6); // +00f4
+        vectorread32le(_r, usuallynul_00f4, 6); // +00f4
         if (!is_all_zero(usuallynul_00f4))
             printf("WARN: +00f4: %s\n", vhexdump(usuallynul_00f4).c_str());
 
@@ -792,14 +860,14 @@ public:
             printf("%08x-%08x: sectionhdr\n", ofs, ofs+12);
         DwordVector hdrvalues;
         _r->setpos(0x5000 + ofs);
-        _r->vectorread32le(hdrvalues, 3);
+        vectorread32le(_r, hdrvalues, 3);
         ofs += 12;
 
         if (g_verbose>1)
             printf("%08x-%08x: entryptrs\n", ofs, ofs+0x1000);
         DwordVector iofs;
         _r->setpos(0x5000 + ofs);
-        _r->vectorread32le(iofs, 0x400);
+        vectorread32le(_r, iofs, 0x400);
         ofs += 0x1000;
 
         if (g_verbose>1)
