@@ -34,20 +34,19 @@ osx
 Building
 ========
 
-Either using the more traditional `Makefile`:
+The default target in `Makefile` will uild the project using `cmake`.
 
     make
 
-or
+Alternatively you can use the old, currently unmainted, makefiles:
 
     make -f Makefile.win32
+    make -f Makefile.linux
 
-Or using the cmake build system:
 
-    make -f Makefile.cm
-
-`cmake` will result in a binary in the `build` subdirectory, while the traditional make will 
+`cmake` will result in a binary in the `build/tools` subdirectory, while the traditional make will 
 create a binary in the current directory.
+
 
 Author
 ======
