@@ -6,9 +6,10 @@ CMAKEARGS+=$(if $(STLDEBUG),-DOPT_STL_DEBUGGING=1)
 CMAKEARGS+=$(if $(SANITIZE),-DOPT_SANITIZE=1)
 CMAKEARGS+=$(if $(ANALYZE),-DOPT_ANALYZE=1)
 
+JOBSFLAG=$(filter -j%,$(MAKEFLAGS))
 all:
 	cmake -B build . $(CMAKEARGS)
-	cmake --build build $(if $(V),--verbose)
+	cmake --build build $(JOBSFLAG) $(if $(V),--verbose) --config $(if $(D),Debug,Release)
 
 VC_CMAKE=C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe
 vc:
