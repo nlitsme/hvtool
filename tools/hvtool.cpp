@@ -8,9 +8,9 @@
 #include <memory>
 #include <functional>
 #include <map>
-#include "regpath.h"
-#include "regvalue.h"
-#include "regfileparser.h"
+#include <regpath.h>
+#include <regvalue.h>
+#include <regfileparser.h>
 
 #include "args.h"
 
