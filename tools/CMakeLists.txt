@@ -1,5 +1,5 @@
 add_executable(hvtool hvtool.cpp)
-target_link_libraries(hvtool itslib reglib openssl)
+target_link_libraries(hvtool itslib reglib)
 target_link_libraries(hvtool ${Boost_regex_LIBRARIES})
 target_link_libraries(hvtool Boost::date_time)
 target_link_libraries(hvtool Boost::regex)
